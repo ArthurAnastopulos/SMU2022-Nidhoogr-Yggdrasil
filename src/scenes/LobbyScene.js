@@ -1,6 +1,8 @@
 // Import Phaser modules
 import Phaser from "phaser";
 
+import WebFontFile from '../assets/font/WebFontFile'
+
 // Create scene
 class LobbyScene extends Phaser.Scene {
   constructor() {
@@ -11,7 +13,10 @@ class LobbyScene extends Phaser.Scene {
   }
 
   // Preload assets
-  preload() {}
+  preload()
+  {
+    this.load.addFile(new WebFontFile(this.load, 'Press Start 2P'));
+  }
 
   // Creating all that will be used in the scene
   create() {
@@ -20,7 +25,8 @@ class LobbyScene extends Phaser.Scene {
     // Creating interactive text to go back to mode selection scene
     this.add
       .text(640, 460, "Go back", {
-        font: "30pt Arial",
+        fontFamily: '"Press Start 2P"',
+        fontSize: "30pt"
       })
       .setInteractive()
       .setOrigin(0.5, 0.5)

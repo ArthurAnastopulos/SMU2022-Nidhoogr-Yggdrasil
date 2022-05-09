@@ -1,22 +1,29 @@
 import Phaser from "phaser";
 
+import WebFontFile from '../assets/font/WebFontFile'
+
 class EndGameScene extends Phaser.Scene {
   constructor() {
     super({ key: "EndGameScene" });
   }
 
-  preload() {}
+  preload()
+  {
+    this.load.addFile(new WebFontFile(this.load, 'Press Start 2P'));
+  }
 
   create() {
     this.add
       .text(640, 300, "You died!", {
-        font: "40pt Arial",
+        fontFamily: '"Press Start 2P"',
+        fontSize: "40pt"
       })
       .setOrigin(0.5, 0.5);
 
     this.add
       .text(640, 360, "Restart", {
-        font: "30pt Arial",
+        fontFamily: '"Press Start 2P"',
+        fontSize: "30pt"
       })
       .setInteractive()
       .setOrigin(0.5, 0.5)
