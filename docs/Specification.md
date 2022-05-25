@@ -18,6 +18,8 @@
 
 - Usar os mecanismos do [**Socket.IO P2P**](https://socket.io/) para configurar uma conexão WebRTC entre peers e comunique-se usando o protocolo socket.io, assim fazendo o encapsulamento de um protocolo de negociação e descrição de mídia para que o navegador consiga negociar caminhos (Rede, Transporte), mídias e codecs (Aplicação).
 
+- Geckos
+
 <h2 align="center">Registro do Cliente no Servidor</h2>
 
 ----
