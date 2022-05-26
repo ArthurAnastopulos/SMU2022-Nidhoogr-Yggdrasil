@@ -1,6 +1,8 @@
 // Import Phaser modules
 import Phaser from "phaser";
 
+import WebFontFile from '../assets/font/WebFontFile'
+
 // Create scene
 class ModeSelectionScene extends Phaser.Scene {
   constructor() {
@@ -11,14 +13,18 @@ class ModeSelectionScene extends Phaser.Scene {
   }
 
   // Preload assets
-  preload() {}
+  preload()
+  {
+    this.load.addFile(new WebFontFile(this.load, 'Press Start 2P'));
+  }
 
   // Creating all that will be used in the scene
   create() {
     // Creating interactive text to enter single player scene
     this.add
       .text(640, 360, "Single Player", {
-        font: "30pt Arial",
+        fontFamily: '"Press Start 2P"',
+        fontSize: "30pt"
       })
       .setInteractive()
       .setOrigin(0.5, 0.5)
@@ -32,15 +38,31 @@ class ModeSelectionScene extends Phaser.Scene {
 
     // Creating interactive text to enter multiplayer scene
     this.add
-      .text(640, 460, "Multiplayer", {
-        font: "30pt Arial",
+      .text(640, 360, "Multiplayer - Create", {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "30pt"
       })
       .setInteractive()
       .setOrigin(0.5, 0.5)
       .on(
         "pointerdown",
         () => {
-          this.scene.start("LobbyScene");
+          this.scene.start("LobbyScene", "create-room");
+        },
+        this
+      );
+
+    this.add
+      .text(640, 460, "Multiplayer - Join", {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "30pt"
+      })
+      .setInteractive()
+      .setOrigin(0.5, 0.5)
+      .on(
+        "pointerdown",
+        () => {
+          this.scene.start("LobbyScene", "join-room");
         },
         this
       );

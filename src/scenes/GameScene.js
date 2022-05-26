@@ -4,6 +4,7 @@ import Phaser from "phaser";
 // Importing assets
 import * as images from "../assets/images";
 import * as audio from "../assets/audio";
+import WebFontFile from '../assets/font/WebFontFile'
 
 // Create scene
 class GameScene extends Phaser.Scene {
@@ -12,6 +13,8 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.addFile(new WebFontFile(this.load, 'Press Start 2P'));
+
     this.load.audio("backgroundMusic", audio.runGameMusic);
 
     this.load.audio("jumpSound1", audio.jumpSound1);
@@ -136,7 +139,8 @@ class GameScene extends Phaser.Scene {
     this.scoreText = this.add
       .text(0, 0, "00000", {
         fill: "535353",
-        font: "900 35px Courier",
+        fontFamily: '"Press Start 2P"',
+        fontSize: "900 35px",
         resolution: 5,
       })
       .setOrigin(0, 0);
