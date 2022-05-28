@@ -22,7 +22,7 @@ class ModeSelectionScene extends Phaser.Scene {
   create() {
     // Creating interactive text to enter single player scene
     this.add
-      .text(640, 360, "Single Player", {
+      .text(640, 260, "Single Player", {
         fontFamily: '"Press Start 2P"',
         fontSize: "30pt"
       })
@@ -31,14 +31,14 @@ class ModeSelectionScene extends Phaser.Scene {
       .on(
         "pointerdown",
         () => {
-          this.scene.start("GameScene");
+          this.scene.start("GameScene", "singleplayer");
         },
         this
       );
 
     // Creating interactive text to enter multiplayer scene
     this.add
-      .text(640, 360, "Multiplayer - Create", {
+      .text(640, 360, "Multiplayer", {
         fontFamily: '"Press Start 2P"',
         fontSize: "30pt"
       })
@@ -47,22 +47,7 @@ class ModeSelectionScene extends Phaser.Scene {
       .on(
         "pointerdown",
         () => {
-          this.scene.start("LobbyScene", "create-room");
-        },
-        this
-      );
-
-    this.add
-      .text(640, 460, "Multiplayer - Join", {
-        fontFamily: '"Press Start 2P"',
-        fontSize: "30pt"
-      })
-      .setInteractive()
-      .setOrigin(0.5, 0.5)
-      .on(
-        "pointerdown",
-        () => {
-          this.scene.start("LobbyScene", "join-room");
+          this.scene.start("GameScene", "join-room");
         },
         this
       );

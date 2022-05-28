@@ -6,6 +6,12 @@ import * as images from "../assets/images";
 import * as audio from "../assets/audio";
 import WebFontFile from '../assets/font/WebFontFile'
 
+var playerDetails = {
+  userId: undefined,
+  roomId: 'SMU2022',
+  isRoomOwner: false
+}
+
 // Create scene
 class GameScene extends Phaser.Scene {
   constructor() {
@@ -39,7 +45,7 @@ class GameScene extends Phaser.Scene {
     });
   }
 
-  create() {
+  create( option ) {
     // Define canvas
     this.gameWidth = 1280;
     this.gameHeight = 640;
@@ -86,69 +92,177 @@ class GameScene extends Phaser.Scene {
       .tileSprite(0, 0, this.gameWidth, this.gameHeight, "highClouds")
       .setOrigin(0, 0);
 
-    // Creating groups for the ground
-    this.groundGroup = this.add.group({
-      removeCallback: (ground) => {
-        ground.scene.groundPool.add(ground);
-      },
-    });
+    if(option == "singleplayer") {
+      // Creating groups for the ground
+      this.groundGroup = this.add.group({
+        removeCallback: (ground) => {
+          ground.scene.groundPool.add(ground);
+        },
+      });
 
-    this.groundPool = this.add.group({
-      removeCallback: (ground) => {
-        ground.scene.groundGroup.add(ground);
-      },
-    });
+      this.groundPool = this.add.group({
+        removeCallback: (ground) => {
+          ground.scene.groundGroup.add(ground);
+        },
+      });
 
-    this.addGround(this.gameWidth, this.gameWidth / 2);
+      this.addGround(this.gameWidth, this.gameWidth / 2);
 
-    this.player = this.physics.add
-      .sprite(640, 360, "playerRun")
-      .setScale(2)
-      .setBounce(0.05)
-      .setGravityY(600);
+      this.player = this.physics.add
+        .sprite(640, 360, "playerRun")
+        .setScale(2)
+        .setBounce(0.05)
+        .setGravityY(600);
 
-    this.physics.add.collider(this.player, this.groundGroup);
+      this.physics.add.collider(this.player, this.groundGroup);
 
-    this.input.on("pointerdown", this.jump, this);
+      this.input.on("pointerdown", this.jump, this);
 
-    this.anims.create({
-      key: "run",
-      frameRate: 15,
-      repeat: -1,
-      frames: this.anims.generateFrameNumbers("playerRun", {
-        start: 1,
-        end: 6,
-      }),
-    });
+      this.anims.create({
+        key: "run",
+        frameRate: 15,
+        repeat: -1,
+        frames: this.anims.generateFrameNumbers("playerRun", {
+          start: 1,
+          end: 6,
+        }),
+      });
 
-    this.anims.create({
-      key: "jump",
-      frameRate: 8,
-      repeat: -1,
-      frames: this.anims.generateFrameNumbers("playerJump", {
-        start: 1,
-        end: 8,
-      }),
-    });
+      this.anims.create({
+        key: "jump",
+        frameRate: 8,
+        repeat: -1,
+        frames: this.anims.generateFrameNumbers("playerJump", {
+          start: 1,
+          end: 8,
+        }),
+      });
 
-    //
-    // ----------
-    // Add the score text
-    //
-    this.score = 0;
-    this.scoreText = this.add
-      .text(0, 0, "00000", {
-        fill: "535353",
-        fontFamily: '"Press Start 2P"',
-        fontSize: "900 35px",
-        resolution: 5,
+      //
+      // ----------
+      // Add the score text
+      //
+      this.score = 0;
+      this.scoreText = this.add
+        .text(0, 0, "00000", {
+          fill: "535353",
+          fontFamily: '"Press Start 2P"',
+          fontSize: "900 35px",
+          resolution: 5,
+        })
+        .setOrigin(0, 0);
+      //
+      //-------------
+      // Calling the function
+      //
+      this.handleScore();
+    } else {
+
+      this.socket = io();
+      var socket = this.socket;
+
+      playerDetails.userId = makeid(5);
+
+      socket.emit('join', playerDetails)
+
+      socket.on('room-created', async (response) => {
+        console.log(`Room was created by ${response.playerDetails.userId}: Call:${response.call} - Response:${response.response} - ${response.code}`);
+        playerDetails.isRoomOwner = response.playerDetails.isRoomOwner;
       })
-      .setOrigin(0, 0);
-    //
-    //-------------
-    // Calling the function
-    //
-    this.handleScore();
+
+      socket.on('room-joined', async (response) => {
+        console.log(`Room of was joined: Call:${response.call} - Response:${response.response} - ${response.code}`);
+        playerDetails.isRoomOwner = response.playerDetails.isRoomOwner;
+      })
+
+      socket.on('full-room', (response) => {
+        console.log(`Room was Full: Call:${response.call} - Response:${response.response} - ${response.code}`);
+        alert("Room is Full, try another time.");
+        Location.reload();
+      })
+
+      this.input.on("ESC", socket.emit('disconnect', playerDetails), this);
+
+      socket.on('leave-room', async (response) => {
+        console.log(`User ${response.response.userId} Room left: Call:${response.response.call} - Response:${response.response.response} - ${response.response.code}`)
+      
+        if(response.nisRoomOwner == playerDetails.userId){
+          playerDetails.isRoomOwner = true
+        }
+      
+      })
+
+      socket.on('ack-bye', async () => {
+        console.log('Socket event callback: ack-bye')
+        loginDetails.isRoomCreator = false
+      })
+
+      // // Creating groups for the ground
+      // this.groundGroup = this.add.group({
+      //   removeCallback: (ground) => {
+      //     ground.scene.groundPool.add(ground);
+      //   },
+      // });
+
+      // this.groundPool = this.add.group({
+      //   removeCallback: (ground) => {
+      //     ground.scene.groundGroup.add(ground);
+      //   },
+      // });
+
+      // this.addGround(this.gameWidth, this.gameWidth / 2);
+
+      // this.player = this.physics.add
+      //   .sprite(640, 360, "playerRun")
+      //   .setScale(2)
+      //   .setBounce(0.05)
+      //   .setGravityY(600);
+
+      // this.physics.add.collider(this.player, this.groundGroup);
+
+      // this.input.on("pointerdown", this.jump, this);
+
+      // this.anims.create({
+      //   key: "run",
+      //   frameRate: 15,
+      //   repeat: -1,
+      //   frames: this.anims.generateFrameNumbers("playerRun", {
+      //     start: 1,
+      //     end: 6,
+      //   }),
+      // });
+
+      // this.anims.create({
+      //   key: "jump",
+      //   frameRate: 8,
+      //   repeat: -1,
+      //   frames: this.anims.generateFrameNumbers("playerJump", {
+      //     start: 1,
+      //     end: 8,
+      //   }),
+      // });
+
+      //
+      // ----------
+      // Add the score text
+      //
+      // this.score = 0;
+      // this.scoreText = this.add
+      //   .text(0, 0, "00000", {
+      //     fill: "535353",
+      //     fontFamily: '"Press Start 2P"',
+      //     fontSize: "900 35px",
+      //     resolution: 5,
+      //   })
+      //   .setOrigin(0, 0);
+      // //
+      // //-------------
+      // // Calling the function
+      // //
+      // this.handleScore();
+    }
+
+    
   }
 
   // Increase the score over the time
@@ -245,6 +359,17 @@ class GameScene extends Phaser.Scene {
     this.montainTipsBackground.tilePositionX += 0.1;
     this.highCloudsBackground.tilePositionX += 0.2;
   }
+}
+
+function makeid(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * 
+charactersLength));
+ }
+ return result;
 }
 
 export default GameScene;
