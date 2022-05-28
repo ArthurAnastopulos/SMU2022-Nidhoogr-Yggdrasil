@@ -22,12 +22,11 @@ app.use(express.static("./dist"));
 io.on('connection', (socket) => {
     console.log('A user has connect to socket.');
     socket.on('join', (playerDetails) => {
-        const roomClients = io.sockets.adapter.rooms[loginDetails.roomId] || { length: 0 }
-        const numberOfClients = roomClients.length
-
+        const roomClients = io.sockets.adapter.rooms[playerDetails.roomId] || { length: 0 }
+        
         console.log(`User ${playerDetails.userId} join arrived`)
 
-        if(numberOfClients == 0) {
+        if(Clients.length == 0) {
 
             console.log(`User:${playerDetails.userId} - has requested a creation of Room: ${playerDetails.roomId}`);
             playerDetails.isRoomOwner = true;
@@ -38,12 +37,12 @@ io.on('connection', (socket) => {
 
             response.call = 'room-created';
             response.player_details = playerDetails;
-            response = "OK";
-            code = 200;
+            response.response = "OK";
+            response.code = 200;
 
             socket.emit('room-created', response);
 
-        } else if (numberOfClients <= maxClients) {
+        } else if (Clients.length < maxClients) {
             
             console.log(`User:${playerDetails.userId} - has requested joining of Room: ${playerDetails.roomId}`)
             playerDetails.isRoomOwner = false;
@@ -52,8 +51,8 @@ io.on('connection', (socket) => {
 
             response.call = 'room-joined';
             response.player_details = playerDetails;
-            response = "OK";
-            code = 200;
+            response.response = "OK";
+            response.code = 200;
 
             socket.join(playerDetails.roomId);
             socket.emit('room-joined', response);
@@ -64,16 +63,16 @@ io.on('connection', (socket) => {
 
             response.call = 'full-room';
             response.player_details = playerDetails;
-            response = "NOT OK";
-            code = 402;
+            response.response = "NOT OK";
+            response.code = 402;
 
             socket.emit("full-room", response);
 
         }
     })
 
-    socket.on('disconnect', (playerDetails) => {
-        console.log(`User:${playerDetails.userId} - has left the Room: ${playerDetails.roomId}, emit disconnect`)
+    socket.on('bye', (playerDetails) => {
+        console.log(`User:${playerDetails.userId} - has left the Room: ${playerDetails.roomId}, emit bye`)
         Clients.splice(Clients.findIndex(item => item.userId === playerDetails.userId), 1)
 
         if((playerDetails.isRoomOwner) && Clients.length > 0) { 
@@ -85,8 +84,8 @@ io.on('connection', (socket) => {
 
         response.call = 'ack-bye';
         response.player_details = playerDetails;
-        response = "OK";
-        code = 202;
+        response.response = "OK";
+        response.code = 202;
 
         socket.emit('ack-bye', response)
 
@@ -95,15 +94,15 @@ io.on('connection', (socket) => {
 
             response.call = 'leave-room'
             response.player_details = playerDetails;
-            response = "OK";  
-            code = 202;
+            response.response = "OK";  
+            response.code = 202;
 
             var leave_response = {
                 response: response,
                 nisRoomOwner: nisRoomOwner
             }
 
-            socket.broadcast.to(playerDetails.roomId).emit('leave-room', leave_response)
+            socket.broadcast.to(response.player_details.roomId).emit('leave-room', leave_response)
         }
     })
 });

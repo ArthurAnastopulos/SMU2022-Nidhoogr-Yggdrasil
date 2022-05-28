@@ -1,6 +1,6 @@
 // Import Phaser module
 import Phaser from "phaser";
-
+import { io } from "socket.io-client";
 // Importing assets
 import * as images from "../assets/images";
 import * as audio from "../assets/audio";
@@ -166,25 +166,33 @@ class GameScene extends Phaser.Scene {
       socket.emit('join', playerDetails)
 
       socket.on('room-created', async (response) => {
-        console.log(`Room was created by ${response.playerDetails.userId}: Call:${response.call} - Response:${response.response} - ${response.code}`);
-        playerDetails.isRoomOwner = response.playerDetails.isRoomOwner;
+        console.log(response);
+        console.log(`Room was created by ${response.player_details.userId}: Call:${response.call} - Response:${response.response} - ${response.code}`);
+        playerDetails.isRoomOwner = response.player_details.isRoomOwner;
       })
 
       socket.on('room-joined', async (response) => {
         console.log(`Room of was joined: Call:${response.call} - Response:${response.response} - ${response.code}`);
-        playerDetails.isRoomOwner = response.playerDetails.isRoomOwner;
+        console.log(response);
+        playerDetails.isRoomOwner = response.player_details.isRoomOwner;
       })
 
       socket.on('full-room', (response) => {
         console.log(`Room was Full: Call:${response.call} - Response:${response.response} - ${response.code}`);
+        console.log(response);
         alert("Room is Full, try another time.");
-        Location.reload();
+        location.reload();
       })
-
-      this.input.on("ESC", socket.emit('disconnect', playerDetails), this);
+      
+      var FKey = this.input.keyboard.addKey("F");
+      FKey.on("down", () => {
+        socket.emit('bye', playerDetails);
+        location.reload();
+      })
+      
 
       socket.on('leave-room', async (response) => {
-        console.log(`User ${response.response.userId} Room left: Call:${response.response.call} - Response:${response.response.response} - ${response.response.code}`)
+        console.log(`User ${response.response.player_details.userId} Room left: Call:${response.response.call} - Response:${response.response.response} - ${response.response.code}`)
       
         if(response.nisRoomOwner == playerDetails.userId){
           playerDetails.isRoomOwner = true
@@ -264,7 +272,7 @@ class GameScene extends Phaser.Scene {
 
     
   }
-
+  
   // Increase the score over the time
   handleScore() {
     this.time.addEvent({
