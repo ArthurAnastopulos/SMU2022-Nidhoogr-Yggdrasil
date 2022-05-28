@@ -6,7 +6,6 @@ import TitleScene from "./scenes/TitleScene";
 import ModeSelectionScene from "./scenes/ModeSelectionScene";
 import GameScene from "./scenes/GameScene";
 import EndGameScene from "./scenes/EndGameScene";
-import LobbyScene from "./scenes/LobbyScene";
 
 // Setting game config
 const config = {
@@ -25,7 +24,7 @@ const config = {
     default: "arcade",
   },
 
-  scene: [TitleScene, ModeSelectionScene, GameScene, EndGameScene, LobbyScene],
+  scene: [TitleScene, ModeSelectionScene, GameScene, EndGameScene],
 };
 
 // Starting the game
