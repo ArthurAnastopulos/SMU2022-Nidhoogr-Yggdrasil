@@ -8,6 +8,7 @@ import WebFontFile from '../assets/font/WebFontFile'
 
 var playerDetails = {
   userId: undefined,
+  userIdSocket: undefined,
   roomId: 'SMU2022',
   isRoomOwner: false
 }
@@ -166,24 +167,23 @@ class GameScene extends Phaser.Scene {
       socket.emit('join', playerDetails)
 
       socket.on('room-created', async (response) => {
-        console.log(response);
-        console.log(`Room was created by ${response.player_details.userId}: Call:${response.call} - Response:${response.response} - ${response.code}`);
+        console.log(`Room was created by ${response.player_details.userId}: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
+        playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
       })
 
       socket.on('room-joined', async (response) => {
-        console.log(`Room of was joined: Call:${response.call} - Response:${response.response} - ${response.code}`);
-        console.log(response);
+        console.log(`Room of was joined: Call: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
+        playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
       })
 
       socket.on('full-room', (response) => {
-        console.log(`Room was Full: Call:${response.call} - Response:${response.response} - ${response.code}`);
-        console.log(response);
+        console.log(`Room was Full: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
         alert("Room is Full, try another time.");
         location.reload();
       })
-      
+
       var FKey = this.input.keyboard.addKey("F");
       FKey.on("down", () => {
         socket.emit('bye', playerDetails);
