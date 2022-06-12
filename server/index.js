@@ -22,6 +22,9 @@ app.use(express.static("./dist"));
 
 io.on('connection', (socket) => {
     console.log('A user has connect to socket.');
+    io.emit("clientes", Clients);
+    console.log(`Lista de clientes na sessão: ${Clients}`);
+    
     socket.on('join', (playerDetails) => {
         console.log(`User ${playerDetails.userId} join arrived`)
 
@@ -56,6 +59,8 @@ io.on('connection', (socket) => {
 
             socket.join(playerDetails.roomId);
             socket.emit('room-joined', response);
+
+            
 
         } else {
 
@@ -150,6 +155,24 @@ io.on('connection', (socket) => {
             socket.broadcast.to(response.player_details.roomId).emit('leave-room', leave_response)
         }
     })
+
+    socket.on("offer", (socketId, description) => {
+        socketId = playerDetails.player_details.socketId;
+        console.log(`Offer: SocketId:${socketId} - Description:${description}` );
+        socket.to(socketId).emit("offer", socket.id, description);
+    });
+
+    socket.on("answer", (socketId, description) => {
+        socketId = playerDetails.player_details.socketId;
+        console.log(`Answer: SocketId:${socketId} - Description:${description}` );
+        socket.to(socketId).emit("answer", description);
+    });
+
+    socket.on("candidate", (socketId, signal) => {
+        socketId = playerDetails.player_details.socketId;
+        console.log(`Answer: SocketId:${socketId} - Description:${signal}` );
+        socket.to(socketId).emit("candidate", signal);
+    });
     
 });
 
