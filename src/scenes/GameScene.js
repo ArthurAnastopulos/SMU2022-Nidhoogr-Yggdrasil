@@ -184,6 +184,23 @@ class GameScene extends Phaser.Scene {
         location.reload();
       })
 
+      socket.on("offer", (socketId, description) => {    
+        console.log(`An offer has been sent: Description:${description}`)
+        socket.to(socketId).emit("offer", socket.id, description);
+      });
+
+      socket.on("answer", (socketId, description) => {
+        console.log(`An offer has been answered: Description:${description}`)
+        socket.to(socketId).emit("answer", description);
+      });
+
+      socket.on("candidate", (socketId, signal) => {
+        // console.log(`An offer has been applied: Description:${description}`)
+        // console.log(`An offer wants to apply: Description:${description}`)
+        socket.to(socketId).emit("candidate", signal);
+      });
+
+
       var FKey = this.input.keyboard.addKey("F");
       FKey.on("down", () => {
         socket.emit('bye', playerDetails);

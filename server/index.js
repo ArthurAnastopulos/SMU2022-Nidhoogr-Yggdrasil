@@ -57,6 +57,8 @@ io.on('connection', (socket) => {
             socket.join(playerDetails.roomId);
             socket.emit('room-joined', response);
 
+            
+
         } else {
 
             console.log(`User:${playerDetails.userId} - has requested joining of Room: ${playerDetails.roomId}, but room was full`);
@@ -150,6 +152,18 @@ io.on('connection', (socket) => {
             socket.broadcast.to(response.player_details.roomId).emit('leave-room', leave_response)
         }
     })
+
+    socket.on("offer", (playerDetails) => {
+        socket.to(playerDetails.player_details.socketId).emit("offer", playerDetails.player_details.socketId, description);
+    });
+
+    socket.on("answer", (playerDetails) => {
+        socket.to(playerDetails.player_details.socketId).emit("answer", description);
+    });
+
+    socket.on("candidate", (playerDetails) => {
+        socket.to(playerDetails.player_details.socketId).emit("candidate", signal);
+    });
     
 });
 
