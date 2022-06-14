@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
     console.log('A user has connect to socket.');
     io.emit("clientes", Clients);
     console.log(`Lista de clientes na sessão: ${Clients}`);
-    
+
     socket.on('join', (playerDetails) => {
         console.log(`User ${playerDetails.userId} join arrived`)
 
