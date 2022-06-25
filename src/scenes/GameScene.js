@@ -6,15 +6,21 @@ import * as images from "../assets/images";
 import * as audio from "../assets/audio";
 import WebFontFile from '../assets/font/WebFontFile'
 
-const audio = document.querySelector("audio");
-
 var ice_servers = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  iceServers: [
+    { 
+      urls: "stun:ifsc.cloud" 
+    },
+    {
+      urls: "turns:ifsc.cloud",
+      username: "etorresini",
+      credential: "matrix",
+    }
+  ],
 };
 var localConnection;
 var remoteConnection;
 var midias;
-var jogador;
 
 var playerDetails = {
   userId: undefined,
@@ -180,12 +186,42 @@ class GameScene extends Phaser.Scene {
         console.log(`Room was created by ${response.player_details.userId}: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
         playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
+
+        navigator.mediaDevices
+          .getUserMedia({ video: false, audio: true })
+          .then((stream) => {
+            midias = stream;
+          })
+          .catch((error) => console.log(error));
       })
 
       socket.on('room-joined', async (response) => {
         console.log(`Room of was joined: Call: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
         playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
+
+        navigator.mediaDevices
+          .getUserMedia({ video: false, audio: true })
+          .then((stream) => {
+            midias = stream;
+            localConnection = new RTCPeerConnection(ice_servers);
+            midias
+              .getTracks()
+              .forEach((track) => localConnection.addTrack(track, midias));
+            localConnection.onicecandidate = ({ candidate }) => {
+              candidate && socket.emit("candidate", playerDetails.roomId, candidate); //
+            };
+            console.log(midias);
+            localConnection.ontrack = ({ streams: [midias] }) => {
+              audio.srcObject = midias;
+          };
+          localConnection
+            .createOffer()
+            .then((offer) => localConnection.setLocalDescription(offer))
+            .then(() => {
+              socket.emit("offer", playerDetails.roomId, localConnection.localDescription);
+            });
+        }).catch((error) => console.log(error));
 
       })
 
@@ -195,169 +231,6 @@ class GameScene extends Phaser.Scene {
         location.reload();
       });
       
-      socket.on("clientes", (jogadores) => {
-        if (jogadores[0].player_details.socketId=== socket.id) {
-          // Define jogador como o primeiro
-          jogador = 1;
-
-          navigator.mediaDevices
-            .getUserMedia({audio: true })
-            .then((stream) => {
-              midias = stream;
-            })
-            .catch((error) => console.log(error));
-        } else if (jogadores[1].player_details.socketId === socket.id) {
-          // Define jogador como o segundo
-          jogador = 2;
-          navigator.mediaDevices
-            .getUserMedia({audio: true })
-            .then((stream) => {
-              midias = stream;
-              localConnection = new RTCPeerConnection(ice_servers);
-              midias
-                .getTracks()
-                .forEach((track) => localConnection.addTrack(track, midias));
-              localConnection.onicecandidate = ({ candidate }) => {
-                candidate &&
-                  socket.emit("candidate", jogadores[0], candidate);
-                console.log(`1 jogador candidate: ${jogadores[0]} - Candiate:${candidate}`)
-              };
-              console.log(midias);
-              localConnection.ontrack = ({ streams: [midias] }) => {
-                audio.srcObject = midias;
-              };
-              localConnection
-                .createOffer()
-                .then((offer) => localConnection.setLocalDescription(offer))
-                .then(() => {
-                  socket.emit(
-                    "offer",
-                    jogadores[0],
-                    localConnection.localDescription
-                  );
-                });
-            })
-            .catch((error) => console.log(error));
-        }
-        // else if (jogadores[2].player_details.socketId === socket.id) {
-        //   // Define jogador como o terceiro
-        //   jogador = 3;
-        //   navigator.mediaDevices
-        //     .getUserMedia({audio: true })
-        //     .then((stream) => {
-        //       midias = stream;
-        //       localConnection = new RTCPeerConnection(ice_servers);
-        //       midias
-        //         .getTracks()
-        //         .forEach((track) => localConnection.addTrack(track, midias));
-        //       localConnection.onicecandidate = ({ candidate }) => {
-        //         candidate &&
-        //           socket.emit("candidate", jogadores[2], candidate);
-        
-        //       };
-        //       console.log(midias);
-        //       localConnection.ontrack = ({ streams: [midias] }) => {
-        //         audio.srcObject = midias;
-        //       };
-        //       localConnection
-        //         .createOffer()
-        //         .then((offer) => localConnection.setLocalDescription(offer))
-        //         .then(() => {
-        //           socket.emit(
-        //             "offer",
-        //             jogadores[2],
-        //             localConnection.localDescription
-        //           );
-        //         });
-        //     })
-        //     .catch((error) => console.log(error));
-        // }
-        // else{
-        //   // Define jogador como o quarto
-        //   jogador = 4;
-        //   navigator.mediaDevices
-        //     .getUserMedia({audio: true })
-        //     .then((stream) => {
-        //       midias = stream;
-        //       localConnection = new RTCPeerConnection(ice_servers);
-        //       midias
-        //         .getTracks()
-        //         .forEach((track) => localConnection.addTrack(track, midias));
-        //       localConnection.onicecandidate = ({ candidate }) => {
-        //         candidate &&
-        //           socket.emit("candidate", jogadores[3], candidate);
-        //       };
-        //       console.log(midias);
-        //       localConnection.ontrack = ({ streams: [midias] }) => {
-        //         audio.srcObject = midias;
-        //       };
-        //       localConnection
-        //         .createOffer()
-        //         .then((offer) => localConnection.setLocalDescription(offer))
-        //         .then(() => {
-        //           socket.emit(
-        //             "offer",
-        //             jogadores[3],
-        //             localConnection.localDescription
-        //           );
-        //         });
-        //     })
-        //     .catch((error) => console.log(error));
-        // }
-        // Os dois jogadores estão conectados
-        console.log(jogadores);
-        if (jogadores[0] !== undefined && jogadores[1] !== undefined) {
-          // Contagem regressiva em segundos (1.000 milissegundos)
-          timer = 60;
-          timedEvent = time.addEvent({
-            delay: 1000,
-            callback: countdown,
-            callbackScope: this,
-            loop: true,
-          });
-        }
-      });
-      //ofertas
-      socket.on("offer", (socketId, description) => {    
-        remoteConnection = new RTCPeerConnection(ice_servers);
-        midias
-          .getTracks()
-          .forEach((track) => remoteConnection.addTrack(track, midias));
-        remoteConnection.onicecandidate = ({ candidate }) => {
-          candidate && socket.emit("candidate", socketId, candidate);
-          console.log(`Offer: SocketId:${socketId} Candidate:${candidate} - Description:${description}`)
-        };
-        remoteConnection.ontrack = ({ streams: [midias] }) => {
-          audio.srcObject = midias;
-        };
-        remoteConnection
-          .setRemoteDescription(description)
-          .then(() => remoteConnection.createAnswer())
-          .then((answer) => remoteConnection.setLocalDescription(answer))
-          .then(() => {
-          console.log(`Answer: SocketId:${socketId} localDescription:${remoteConnection.localDescription}- Description:${description}`)  
-          socket.emit("answer", socketId, remoteConnection.localDescription);
-          
-          });
-  
-        console.log(`An offer has been sent: Description:${description}`)
-        socket.to(socketId).emit("offer", socket.id, description);
-      });
-
-      socket.on("answer", (description) => {
-        localConnection.setRemoteDescription(description);
-        console.log(`An offer has been answered: Description:${description}`)
-        // socket.to(socketId).emit("answer", description);
-      });
-
-      socket.on("candidate", (candidate) => {
-        const conn = localConnection || remoteConnection;
-        conn.addIceCandidate(new RTCIceCandidate(candidate));
-        // console.log(`An offer has been applied: Description:${description}`)
-        // console.log(`An offer wants to apply: Description:${description}`)
-        // socket.to(socketId).emit("candidate", signal);
-      });
-
       //Desconnection trigger
       var FKey = this.input.keyboard.addKey("F");
       FKey.on("down", () => {
@@ -379,6 +252,35 @@ class GameScene extends Phaser.Scene {
         console.log('Socket event callback: ack-bye')
         loginDetails.isRoomCreator = false
       })
+
+      socket.on("offer", (room, description) => {
+        remoteConnection = new RTCPeerConnection(ice_servers);
+        midias
+          .getTracks()
+          .forEach((track) => remoteConnection.addTrack(track, midias));
+        remoteConnection.onicecandidate = ({ candidate }) => {
+          candidate && socket.emit("candidate", room, candidate);
+        };
+        remoteConnection.ontrack = ({ streams: [midias] }) => {
+          audio.srcObject = midias;
+        };
+        remoteConnection
+          .setRemoteDescription(description)
+          .then(() => remoteConnection.createAnswer())
+          .then((answer) => remoteConnection.setLocalDescription(answer))
+          .then(() => {
+            socket.emit("answer", room, remoteConnection.localDescription);
+          });
+      });
+
+      socket.on("candidate", (candidate) => {
+        const conn = localConnection || remoteConnection;
+        conn.addIceCandidate(new RTCIceCandidate(candidate));
+      });
+
+      socket.on("answer", (description) => {
+        localConnection.setRemoteDescription(description);
+      });
 
       // // Creating groups for the ground
       // this.groundGroup = this.add.group({

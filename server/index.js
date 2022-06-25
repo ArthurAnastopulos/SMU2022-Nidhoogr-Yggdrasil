@@ -4,7 +4,11 @@ const app = express();
 const server = require("http").createServer(app)
 const { Server } = require("socket.io");
 const { cli } = require("webpack");
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origins: ["https://cliente.ifsc.cloud", "https://*.gitpod.io"],
+    },  
+});
 
 const PORT = 1506;
 
@@ -22,8 +26,6 @@ app.use(express.static("./dist"));
 
 io.on('connection', (socket) => {
     console.log('A user has connect to socket.');
-    io.emit("clientes", Clients);
-    console.log(`Lista de clientes na sessão: ${Clients}`);
 
     socket.on('join', (playerDetails) => {
         console.log(`User ${playerDetails.userId} join arrived`)
@@ -156,24 +158,17 @@ io.on('connection', (socket) => {
         }
     })
 
-    socket.on("offer", (socketId, description) => {
-        socketId = playerDetails.player_details.socketId;
-        console.log(`Offer: SocketId:${socketId} - Description:${description}` );
-        socket.to(socketId).emit("offer", socket.id, description);
+    socket.on("offer", (room, description) => {
+        socket.broadcast.to(room).emit("offer", room, description);
+    })
+
+    socket.on("candidate", (room, signal) => {
+        socket.broadcast.to(room).emit("candidate", signal);
     });
 
-    socket.on("answer", (socketId, description) => {
-        socketId = playerDetails.player_details.socketId;
-        console.log(`Answer: SocketId:${socketId} - Description:${description}` );
-        socket.to(socketId).emit("answer", description);
-    });
-
-    socket.on("candidate", (socketId, signal) => {
-        socketId = playerDetails.player_details.socketId;
-        console.log(`Answer: SocketId:${socketId} - Description:${signal}` );
-        socket.to(socketId).emit("candidate", signal);
-    });
-    
+    socket.on("answer", (room, description) => {
+        socket.broadcast.to(room).emit("answer", description);
+    })
 });
 
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}!`));
