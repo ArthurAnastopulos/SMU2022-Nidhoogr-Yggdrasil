@@ -13,7 +13,7 @@ const config = {
 
   antialias: false,
 
-  parent: "phaser-example",
+  parent: "game-container",
 
   // 1280x640 || 40x20(base 32x32)
   width: 1280,
@@ -22,6 +22,15 @@ const config = {
 
   physics: {
     default: "arcade",
+    debug: true
+  },
+
+  scale: {
+    mode: Phaser.Scale.FIT,
+    parent: "game-container",
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 800,
+    height: 600,
   },
 
   scene: [TitleScene, ModeSelectionScene, GameScene, EndGameScene],

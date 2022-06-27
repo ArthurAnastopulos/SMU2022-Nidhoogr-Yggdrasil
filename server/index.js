@@ -4,11 +4,7 @@ const app = express();
 const server = require("http").createServer(app)
 const { Server } = require("socket.io");
 const { cli } = require("webpack");
-const io = new Server(server, {
-    cors: {
-        origins: ["https://cliente.ifsc.cloud", "https://*.gitpod.io"],
-    },  
-});
+const io = new Server(server);
 
 const PORT = 1506;
 

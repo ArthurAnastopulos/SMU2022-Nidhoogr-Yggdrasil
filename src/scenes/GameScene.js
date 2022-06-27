@@ -21,6 +21,7 @@ var ice_servers = {
 var localConnection;
 var remoteConnection;
 var midias;
+const audioOutput = document.querySelector("audio");
 
 var playerDetails = {
   userId: undefined,
@@ -213,7 +214,7 @@ class GameScene extends Phaser.Scene {
             };
             console.log(midias);
             localConnection.ontrack = ({ streams: [midias] }) => {
-              audio.srcObject = midias;
+              audioOutput.srcObject = midias;
           };
           localConnection
             .createOffer()
@@ -262,7 +263,7 @@ class GameScene extends Phaser.Scene {
           candidate && socket.emit("candidate", room, candidate);
         };
         remoteConnection.ontrack = ({ streams: [midias] }) => {
-          audio.srcObject = midias;
+          audioOutput.srcObject = midias;
         };
         remoteConnection
           .setRemoteDescription(description)
