@@ -41,10 +41,12 @@
   "dependencies": {
     "browserify": "^17.0.0",
     "express": "^4.17.1",
+    "webpack": "^4.46.0",
     "expressa": "^0.5.19",
     "phaser": "^3.54.0",
     "socket.io": "^4.5.1",
     "webfontloader": "^1.6.28",
+    "webpack-cli": "^3.3.12",
     "ws": "^7.4.1"
   }
 }
