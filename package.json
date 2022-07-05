@@ -44,7 +44,7 @@
     "expressa": "^0.5.19",
     "phaser": "^3.54.0",
     "socket.io": "^4.5.1",
-    "ws": "^7.4.1",
-    "webfontloader": "^1.6.28"
+    "webfontloader": "^1.6.28",
+    "ws": "^7.4.1"
   }
 }
