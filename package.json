@@ -47,6 +47,9 @@
     "socket.io": "^4.5.1",
     "webfontloader": "^1.6.28",
     "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-merge": "^4.2.2",
+    "webpack-remove-debug": "^0.1.0",
     "ws": "^7.4.1"
   }
 }
