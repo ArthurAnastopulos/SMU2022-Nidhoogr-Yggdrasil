@@ -6,7 +6,7 @@ const { Server } = require("socket.io");
 const { cli } = require("webpack");
 const io = new Server(server);
 
-const PORT = 1506; //
+const PORT = process.env.PORT || 3000;
 
 const Clients = new Array();
 const maxClients = 4;
