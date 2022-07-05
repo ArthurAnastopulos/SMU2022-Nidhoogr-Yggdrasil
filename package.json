@@ -2,9 +2,12 @@
   "name": "yggdrasil",
   "version": "1.0.0",
   "description": "phaser infinity runner game",
-  "main": "./server/index.js",
+  "engines": {
+    "node": ">=16.x"
+  },
+  "main": "server.js",
   "scripts": {
-    "start": "node ./server/index.js",
+    "start": "node server.js",
     "dev": "webpack-dev-server --config webpack/base.js --open",
     "build": "webpack --config webpack/prod.js "
   },
