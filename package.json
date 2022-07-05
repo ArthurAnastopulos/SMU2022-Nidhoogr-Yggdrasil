@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "phaser infinity runner game",
   "engines": {
-    "node": ">=16.x"
+    "node": "16.x"
   },
   "main": "server.js",
   "scripts": {
