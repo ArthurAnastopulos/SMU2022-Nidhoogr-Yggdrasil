@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
       response.code = 200;
 
       socket.join(playerDetails.roomId);
-      socket.emit("room-created", response);
+      socket.emit("room-created", response, Clients.length);
     } else if (Clients.length < maxClients) {
       console.log(
         `User:${playerDetails.userId} - has requested joining of Room: ${playerDetails.roomId}`
@@ -57,7 +57,12 @@ io.on("connection", (socket) => {
       response.code = 200;
 
       socket.join(playerDetails.roomId);
-      socket.emit("room-joined", response);
+      socket.emit("room-joined", response, Clients.length);
+      
+      if(Clients.length >= maxClients)
+      {
+        socket.broadcast.to(playerDetails.roomId).emit("startGame");
+      }
     } else {
       console.log(
         `User:${playerDetails.userId} - has requested joining of Room: ${playerDetails.roomId}, but room was full`
@@ -176,6 +181,10 @@ io.on("connection", (socket) => {
 
   socket.on("answer", (room, description) => {
     socket.broadcast.to(room).emit("answer", description);
+  });
+
+  socket.on("gameState", (groundDetails) => {
+    socket.broadcast.to(room).emit("drawGame", groundDetails);
   });
 });
 

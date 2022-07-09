@@ -18,6 +18,8 @@ var ice_servers = {
     }
   ],
 };
+var socket = undefined;
+var start = false;
 var localConnection;
 var remoteConnection;
 var midias;
@@ -25,10 +27,14 @@ const audioOutput = document.querySelector("audio");
 
 var playerDetails = {
   userId: undefined,
+  player: undefined,
   userIdSocket: undefined,
   roomId: 'SMU2022',
   isRoomOwner: false
 }
+
+var player1, player2, player3, player4 = undefined;
+var cursors = undefined;
 
 // Create scene
 class GameScene extends Phaser.Scene {
@@ -126,13 +132,13 @@ class GameScene extends Phaser.Scene {
 
       this.addGround(this.gameWidth, this.gameWidth / 2);
 
-      this.player = this.physics.add
+      player1 = this.physics.add
         .sprite(640, 360, "playerRun")
         .setScale(2)
         .setBounce(0.05)
         .setGravityY(600);
 
-      this.physics.add.collider(this.player, this.groundGroup);
+      this.physics.add.collider(player1, this.groundGroup);
 
       this.input.on("pointerdown", this.jump, this);
 
@@ -177,16 +183,17 @@ class GameScene extends Phaser.Scene {
     } else {
 
       this.socket = io();
-      var socket = this.socket;
+      socket = this.socket;
 
       playerDetails.userId = makeid(5);
 
       socket.emit('join', playerDetails)
 
-      socket.on('room-created', async (response) => {
+      socket.on('room-created', async (response, playerNum) => {
         console.log(`Room was created by ${response.player_details.userId}: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
         playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
+        playerDetails.player = playerNum;
 
         navigator.mediaDevices
           .getUserMedia({ video: false, audio: true })
@@ -196,10 +203,11 @@ class GameScene extends Phaser.Scene {
           .catch((error) => console.log(error));
       })
 
-      socket.on('room-joined', async (response) => {
+      socket.on('room-joined', async (response, playerNum) => {
         console.log(`Room of was joined: Call: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
         playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
+        playerDetails.player = playerNum;
 
         navigator.mediaDevices
           .getUserMedia({ video: false, audio: true })
@@ -283,72 +291,97 @@ class GameScene extends Phaser.Scene {
         localConnection.setRemoteDescription(description);
       });
 
-      // // Creating groups for the ground
-      // this.groundGroup = this.add.group({
-      //   removeCallback: (ground) => {
-      //     ground.scene.groundPool.add(ground);
-      //   },
-      // });
+      socket.on("startGame", () =>{
+        console.log("Minimum Required Players in room, starting game Now.");
+        start = true;
+        // Creating groups for the ground
+        this.groundGroup = this.add.group({
+          removeCallback: (ground) => {
+            ground.scene.groundPool.add(ground);
+          },
+        });
 
-      // this.groundPool = this.add.group({
-      //   removeCallback: (ground) => {
-      //     ground.scene.groundGroup.add(ground);
-      //   },
-      // });
+        this.groundPool = this.add.group({
+          removeCallback: (ground) => {
+            ground.scene.groundGroup.add(ground);
+          },
+        });
 
-      // this.addGround(this.gameWidth, this.gameWidth / 2);
+        this.addGround(this.gameWidth, this.gameWidth / 2);
 
-      // this.player = this.physics.add
-      //   .sprite(640, 360, "playerRun")
-      //   .setScale(2)
-      //   .setBounce(0.05)
-      //   .setGravityY(600);
+        player1 = this.physics.add
+            .sprite(640, 360, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(600);
+        
+        player2 = this.physics.add
+            .sprite(740, 360, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(600);
 
-      // this.physics.add.collider(this.player, this.groundGroup);
+        player3 = this.physics.add
+            .sprite(540, 360, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(600);  
 
-      // this.input.on("pointerdown", this.jump, this);
+        player4 = this.physics.add
+            .sprite(840, 360, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(600);
 
-      // this.anims.create({
-      //   key: "run",
-      //   frameRate: 15,
-      //   repeat: -1,
-      //   frames: this.anims.generateFrameNumbers("playerRun", {
-      //     start: 1,
-      //     end: 6,
-      //   }),
-      // });
+        cursors = this.input.keyboard.createCursorKeys()  
+        
+        this.physics.add.collider(player1, this.groundGroup);
 
-      // this.anims.create({
-      //   key: "jump",
-      //   frameRate: 8,
-      //   repeat: -1,
-      //   frames: this.anims.generateFrameNumbers("playerJump", {
-      //     start: 1,
-      //     end: 8,
-      //   }),
-      // });
+        this.physics.add.collider(player2, this.groundGroup);
 
-      //
-      // ----------
-      // Add the score text
-      //
-      // this.score = 0;
-      // this.scoreText = this.add
-      //   .text(0, 0, "00000", {
-      //     fill: "535353",
-      //     fontFamily: '"Press Start 2P"',
-      //     fontSize: "900 35px",
-      //     resolution: 5,
-      //   })
-      //   .setOrigin(0, 0);
-      // //
-      // //-------------
-      // // Calling the function
-      // //
-      // this.handleScore();
-    }
+        this.physics.add.collider(player3, this.groundGroup);
 
+        this.physics.add.collider(player4, this.groundGroup);
+
+        this.anims.create({
+          key: "run",
+          frameRate: 15,
+          repeat: -1,
+          frames: this.anims.generateFrameNumbers("playerRun", {
+            start: 1,
+            end: 6,
+          }),
+        });
+
+        this.anims.create({
+          key: "jump",
+          frameRate: 8,
+          repeat: -1,
+          frames: this.anims.generateFrameNumbers("playerJump", {
+            start: 1,
+            end: 8,
+          }),
+        });
+
+        // ----------
+        // Add the score text
+        this.score = 0;
+        this.scoreText = this.add
+          .text(0, 0, "00000", {
+            fill: "535353",
+            fontFamily: '"Press Start 2P"',
+            fontSize: "900 35px",
+            resolution: 5,
+          })
+          .setOrigin(0, 0);
+        
+        //-------------
+        // Calling the function
+        this.handleScore(); 
+
+      });
     
+    }
   }
   
   // Increase the score over the time
@@ -371,12 +404,12 @@ class GameScene extends Phaser.Scene {
   }
 
   jump() {
-    if (this.player.body.touching.down) {
+    if (player1.body.touching.down) {
       const randomIndex = Math.floor(Math.random() * 3);
 
       this.jumpSound[randomIndex].play();
 
-      this.player.setVelocityY(5000000);
+      player1.setVelocityY(5000000);
     }
   }
 
@@ -407,43 +440,137 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.player.y > 720) {
-      this.scene.start("EndGameScene");
-      this.backgroundMusic.stop();
-    }
-
-    if (!this.player.body.touching.down) {
-      this.player.anims.play("jump", true);
-    } else {
-      this.player.anims.play("run", true);
-    }
-
-    this.player.x = this.gameHeight;
-
-    let minDistance = this.gameWidth;
-
-    this.groundGroup.getChildren().forEach((ground) => {
-      let groundDistance = this.gameWidth - ground.x - ground.displayWidth / 2;
-
-      minDistance = Math.min(minDistance, groundDistance);
-
-      if (ground.x < -ground.displayWidth / 2) {
-        this.groundGroup.killAndHide(ground);
-        this.groundGroup.remove(ground);
+    if(start == true)
+    {
+      //verfica se o player morreu
+      if (player1.y > 720 && playerDetails.player == 1) {
+        socket.emit('bye', playerDetails);
+        this.scene.start("EndGameScene");
+        this.backgroundMusic.stop();
       }
-    }, this);
 
-    if (minDistance > this.nextGroundDistance) {
-      let nextGroundWidth = Phaser.Math.Between(100, 350);
+      if (player2.y > 720 && playerDetails.player == 2) {
+        socket.emit('bye', playerDetails);
+        this.scene.start("EndGameScene");
+        this.backgroundMusic.stop();
+      }
 
-      this.addGround(nextGroundWidth, this.gameWidth + nextGroundWidth / 2);
+      if (player3.y > 720 && playerDetails.player == 3) {
+        socket.emit('bye', playerDetails);
+        this.scene.start("EndGameScene");
+        this.backgroundMusic.stop();
+      }
+
+      if (player4.y > 720 && playerDetails.player == 4) {
+        socket.emit('bye', playerDetails);
+        this.scene.start("EndGameScene");
+        this.backgroundMusic.stop();
+      }
+
+      //verfica se o movimento de cada player
+      if(playerDetails.player == 1)
+      {
+        if(cursors.space.isDown){
+          const randomIndex = Math.floor(Math.random() * 3);
+          this.jumpSound[randomIndex].play();
+
+          player1.setVelocityY(5000000);
+          player1.anims.play("jump", true);
+        } else {
+          player1.anims.play("run", true);
+        }
+      } else {
+        player1.anims.play("run", true);
+      }   
+
+      if(playerDetails.player == 2)
+      {
+        if(cursors.space.isDown){
+          const randomIndex = Math.floor(Math.random() * 3);
+          this.jumpSound[randomIndex].play();
+
+          player2.setVelocityY(5000000);
+          player2.anims.play("jump", true);
+        } else {
+          player2.anims.play("run", true);
+        }   
+      } else {
+        player2.anims.play("run", true);
+      }
+
+      if(playerDetails.player == 3)
+      {
+        if(cursors.space.isDown){
+          const randomIndex = Math.floor(Math.random() * 3);
+          this.jumpSound[randomIndex].play();
+
+          player3.setVelocityY(5000000);
+          player3.anims.play("jump", true);
+        } else {
+          player3.anims.play("run", true);
+        }  
+      } else {
+        player3.anims.play("run", true);
+      }
+
+      if(playerDetails.player == 4)
+      {
+        if(cursors.space.isDown){
+          const randomIndex = Math.floor(Math.random() * 3);
+          this.jumpSound[randomIndex].play();
+
+          player4.setVelocityY(5000000);
+          player4.anims.play("jump", true);
+        } else {
+          player4.anims.play("run", true);
+        }  
+      }  else {
+        player4.anims.play("run", true);
+      }
+
+      player1.x = this.gameHeight;
+      player2.x = this.gameHeight + 100;
+      player3.x = this.gameHeight - 100;
+      player4.x = this.gameHeight + 200;
+
+
+      let minDistance = this.gameWidth;
+
+      this.groundGroup.getChildren().forEach((ground) => {
+        let groundDistance = this.gameWidth - ground.x - ground.displayWidth / 2;
+
+        minDistance = Math.min(minDistance, groundDistance);
+
+        if (ground.x < -ground.displayWidth / 2) {
+          this.groundGroup.killAndHide(ground);
+          this.groundGroup.remove(ground);
+        }
+      }, this);
+
+      // if (minDistance > this.nextGroundDistance) {
+      //   // if(playerDetails.player == 1)
+      //   // {
+      //   //   let nextGroundWidth = Phaser.Math.Between(100, 350);
+      //   //   //this.addGround(nextGroundWidth, this.gameWidth + nextGroundWidth / 2);
+      //   //   groundDetails = {
+      //   //     nextGroundWidth: nextGroundWidth,
+      //   //     posX: this.gameWidth + nextGroundWidth / 2,
+      //   //   }
+      //   //   socket.emit("gameState", groundDetails);
+      //   // }
+      // }
+
+      // socket.on("drawGame", (groundDetails) => {
+      //   this.addGround(groundDetails.nextGroundWidth, groundDetails.posX);
+      // });
+
+      this.addGround(this.gameWidth, this.gameWidth / 2);
+
+      // Parallax
+      this.lowCloudBackground.tilePositionX += 0.15;
+      this.montainTipsBackground.tilePositionX += 0.1;
+      this.highCloudsBackground.tilePositionX += 0.2;
     }
-
-
-    // Parallax
-    this.lowCloudBackground.tilePositionX += 0.15;
-    this.montainTipsBackground.tilePositionX += 0.1;
-    this.highCloudsBackground.tilePositionX += 0.2;
   }
 }
 
