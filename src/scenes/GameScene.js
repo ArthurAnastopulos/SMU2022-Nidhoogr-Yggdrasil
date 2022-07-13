@@ -309,40 +309,130 @@ class GameScene extends Phaser.Scene {
 
         this.addGround(this.gameWidth, this.gameWidth / 2);
 
-        player1 = this.physics.add
-            .sprite(640, 360, "playerRun")
+        if(playerDetails.player == 1)
+        {
+          player1 = this.physics.add
+            .sprite(640, 405, "playerRun")
             .setScale(2)
             .setBounce(0.05)
             .setGravityY(600);
         
-        player2 = this.physics.add
-            .sprite(740, 360, "playerRun")
+          player2 = this.physics.add
+              .sprite(740, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);
+
+          player3 = this.physics.add
+              .sprite(540, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);  
+
+          player4 = this.physics.add
+              .sprite(840, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);
+
+          cursors = this.input.keyboard.createCursorKeys()  
+          
+          this.physics.add.collider(player1, this.groundGroup);
+        }
+
+        if(playerDetails.player == 2)
+        {
+          player1 = this.physics.add
+            .sprite(640, 405, "playerRun")
             .setScale(2)
             .setBounce(0.05)
-            .setGravityY(600);
-
-        player3 = this.physics.add
-            .sprite(540, 360, "playerRun")
-            .setScale(2)
-            .setBounce(0.05)
-            .setGravityY(600);  
-
-        player4 = this.physics.add
-            .sprite(840, 360, "playerRun")
-            .setScale(2)
-            .setBounce(0.05)
-            .setGravityY(600);
-
-        cursors = this.input.keyboard.createCursorKeys()  
+            .setGravityY(false);
         
-        this.physics.add.collider(player1, this.groundGroup);
+          player2 = this.physics.add
+              .sprite(740, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(600);
 
-        this.physics.add.collider(player2, this.groundGroup);
+          player3 = this.physics.add
+              .sprite(540, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);  
 
-        this.physics.add.collider(player3, this.groundGroup);
+          player4 = this.physics.add
+              .sprite(840, 410, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);
 
-        this.physics.add.collider(player4, this.groundGroup);
+          cursors = this.input.keyboard.createCursorKeys()  
+          
+          this.physics.add.collider(player2, this.groundGroup);
+        }
 
+        if(playerDetails.player == 3)
+        {
+          player1 = this.physics.add
+            .sprite(640, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(false);
+        
+          player2 = this.physics.add
+              .sprite(740, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);
+
+          player3 = this.physics.add
+              .sprite(540, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(600);  
+
+          player4 = this.physics.add
+              .sprite(840, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);
+
+          cursors = this.input.keyboard.createCursorKeys()  
+          
+          this.physics.add.collider(player3, this.groundGroup);
+        }
+
+        if(playerDetails.player == 4)
+        {
+          player1 = this.physics.add
+            .sprite(640, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(false);
+        
+          player2 = this.physics.add
+              .sprite(740, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);
+
+          player3 = this.physics.add
+              .sprite(540, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(false);  
+
+          player4 = this.physics.add
+              .sprite(840, 405, "playerRun")
+              .setScale(2)
+              .setBounce(0.05)
+              .setGravityY(600);
+
+          cursors = this.input.keyboard.createCursorKeys()  
+          
+          this.physics.add.collider(player4, this.groundGroup);
+        }
+       
         this.anims.create({
           key: "run",
           frameRate: 15,
@@ -381,6 +471,28 @@ class GameScene extends Phaser.Scene {
 
       });
     
+      socket.on("playerDraw", ({ who, frame, x, y }) => {
+        if (who === 1) {
+          player1.setFrame(frame);
+          player1.x = x;
+          player1.y = y;
+        } 
+        if ( who === 2) {
+          player2.setFrame(frame);
+          player2.x = x;
+          player2.y = y;
+        }
+        if ( who === 3) {
+          player3.setFrame(frame);
+          player3.x = x;
+          player3.y = y;
+        }
+        if ( who === 4) {
+          player4.setFrame(frame);
+          player4.x = x;
+          player.y = y;
+        }
+      });
     }
   }
   
@@ -479,9 +591,15 @@ class GameScene extends Phaser.Scene {
         } else {
           player1.anims.play("run", true);
         }
-      } else {
-        player1.anims.play("run", true);
-      }   
+        
+        player1.x = this.gameHeight;
+        socket.emit("playerState", {
+          who: 1,
+          frame: player1.anims.getFrameName(),
+          x: this.gameHeight,
+          y: player1.y
+        });
+      }  
 
       if(playerDetails.player == 2)
       {
@@ -493,9 +611,14 @@ class GameScene extends Phaser.Scene {
           player2.anims.play("jump", true);
         } else {
           player2.anims.play("run", true);
-        }   
-      } else {
-        player2.anims.play("run", true);
+        }
+        player2.x = this.gameHeight + 100;
+        socket.emit("playerState", {
+          who: 2,
+          frame: player2.anims.getFrameName(),
+          x: this.gameHeight + 100,
+          y: player2.y
+        });
       }
 
       if(playerDetails.player == 3)
@@ -508,9 +631,14 @@ class GameScene extends Phaser.Scene {
           player3.anims.play("jump", true);
         } else {
           player3.anims.play("run", true);
-        }  
-      } else {
-        player3.anims.play("run", true);
+        } 
+        player3.x = this.gameHeight - 100;
+        socket.emit("playerState", {
+          who: 3,
+          frame: player3.anims.getFrameName(),
+          x: this.gameHeight - 100,
+          y: player3.y
+        });
       }
 
       if(playerDetails.player == 4)
@@ -523,15 +651,15 @@ class GameScene extends Phaser.Scene {
           player4.anims.play("jump", true);
         } else {
           player4.anims.play("run", true);
-        }  
-      }  else {
-        player4.anims.play("run", true);
+        }
+        player4.x = this.gameHeight + 200;
+        socket.emit("playerState", {
+          who: 4,
+          frame: player4.anims.getFrameName(),
+          x: this.gameHeight + 200,
+          y: player4.y
+        });
       }
-
-      player1.x = this.gameHeight;
-      player2.x = this.gameHeight + 100;
-      player3.x = this.gameHeight - 100;
-      player4.x = this.gameHeight + 200;
 
 
       let minDistance = this.gameWidth;

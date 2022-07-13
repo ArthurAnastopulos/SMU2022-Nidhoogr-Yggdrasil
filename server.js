@@ -183,8 +183,8 @@ io.on("connection", (socket) => {
     socket.broadcast.to(room).emit("answer", description);
   });
 
-  socket.on("gameState", (groundDetails) => {
-    socket.broadcast.to(room).emit("drawGame", groundDetails);
+  socket.on("playerState", (frameState) => {
+    socket.broadcast.to("SMU2022").emit("playerDraw", frameState);
   });
 });
 
