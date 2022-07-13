@@ -61,6 +61,7 @@ io.on("connection", (socket) => {
       
       if(Clients.length >= maxClients)
       {
+        socket.emit("startGame");
         socket.broadcast.to(playerDetails.roomId).emit("startGame");
       }
     } else {
@@ -185,6 +186,10 @@ io.on("connection", (socket) => {
 
   socket.on("playerState", (frameState) => {
     socket.broadcast.to("SMU2022").emit("playerDraw", frameState);
+  });
+
+  socket.on("gameState", (groundDetails) => {
+    socket.broadcast.to("SMU2022").emit("gameDraw", groundDetails);
   });
 });
 

@@ -493,6 +493,10 @@ class GameScene extends Phaser.Scene {
           player.y = y;
         }
       });
+
+      socket.on("gameDraw", ({nextGroundWidth, posX}) => {
+         this.addGround(nextGroundWidth, posX);
+      });      
     }
   }
   
@@ -675,24 +679,18 @@ class GameScene extends Phaser.Scene {
         }
       }, this);
 
-      // if (minDistance > this.nextGroundDistance) {
-      //   // if(playerDetails.player == 1)
-      //   // {
-      //   //   let nextGroundWidth = Phaser.Math.Between(100, 350);
-      //   //   //this.addGround(nextGroundWidth, this.gameWidth + nextGroundWidth / 2);
-      //   //   groundDetails = {
-      //   //     nextGroundWidth: nextGroundWidth,
-      //   //     posX: this.gameWidth + nextGroundWidth / 2,
-      //   //   }
-      //   //   socket.emit("gameState", groundDetails);
-      //   // }
-      // }
-
-      // socket.on("drawGame", (groundDetails) => {
-      //   this.addGround(groundDetails.nextGroundWidth, groundDetails.posX);
-      // });
-
-      this.addGround(this.gameWidth, this.gameWidth / 2);
+      if (minDistance > this.nextGroundDistance) {
+        if(playerDetails.isRoomOwner == true)
+        {
+          let nextGroundWidth = Phaser.Math.Between(100, 350);
+          var groundDetails = {
+            nextGroundWidth: nextGroundWidth,
+            posX: this.gameWidth + nextGroundWidth / 2,
+          }
+          socket.emit("gameState", groundDetails);
+          this.addGround(nextGroundWidth, this.gameWidth + nextGroundWidth / 2);
+        }
+      }
 
       // Parallax
       this.lowCloudBackground.tilePositionX += 0.15;
