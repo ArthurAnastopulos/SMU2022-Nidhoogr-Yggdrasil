@@ -4,18 +4,18 @@ import { io } from "socket.io-client";
 // Importing assets
 import * as images from "../assets/images";
 import * as audio from "../assets/audio";
-import WebFontFile from '../assets/font/WebFontFile'
+import WebFontFile from "../assets/font/WebFontFile";
 
 var ice_servers = {
   iceServers: [
-    { 
-      urls: "stun:ifsc.cloud" 
+    {
+      urls: "stun:ifsc.cloud",
     },
     {
       urls: "turns:ifsc.cloud",
       username: "etorresini",
       credential: "matrix",
-    }
+    },
   ],
 };
 var socket = undefined;
@@ -29,11 +29,14 @@ var playerDetails = {
   userId: undefined,
   player: undefined,
   userIdSocket: undefined,
-  roomId: 'SMU2022',
-  isRoomOwner: false
-}
+  roomId: "SMU2022",
+  isRoomOwner: false,
+};
 
-var player1, player2, player3, player4 = undefined;
+var player1,
+  player2,
+  player3,
+  player4 = undefined;
 var cursors = undefined;
 
 // Create scene
@@ -43,7 +46,7 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.addFile(new WebFontFile(this.load, 'Press Start 2P'));
+    this.load.addFile(new WebFontFile(this.load, "Press Start 2P"));
 
     this.load.audio("backgroundMusic", audio.runGameMusic);
 
@@ -69,7 +72,7 @@ class GameScene extends Phaser.Scene {
     });
   }
 
-  create( option ) {
+  create(option) {
     // Define canvas
     this.gameWidth = 1280;
     this.gameHeight = 640;
@@ -116,7 +119,7 @@ class GameScene extends Phaser.Scene {
       .tileSprite(0, 0, this.gameWidth, this.gameHeight, "highClouds")
       .setOrigin(0, 0);
 
-    if(option == "singleplayer") {
+    if (option == "singleplayer") {
       // Creating groups for the ground
       this.groundGroup = this.add.group({
         removeCallback: (ground) => {
@@ -181,16 +184,17 @@ class GameScene extends Phaser.Scene {
       //
       this.handleScore();
     } else {
-
       this.socket = io();
       socket = this.socket;
 
       playerDetails.userId = makeid(5);
 
-      socket.emit('join', playerDetails)
+      socket.emit("join", playerDetails);
 
-      socket.on('room-created', async (response, playerNum) => {
-        console.log(`Room was created by ${response.player_details.userId}: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
+      socket.on("room-created", async (response, playerNum) => {
+        console.log(
+          `Room was created by ${response.player_details.userId}: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`
+        );
         playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
         playerDetails.player = playerNum;
@@ -201,10 +205,12 @@ class GameScene extends Phaser.Scene {
             midias = stream;
           })
           .catch((error) => console.log(error));
-      })
+      });
 
-      socket.on('room-joined', async (response, playerNum) => {
-        console.log(`Room of was joined: Call: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
+      socket.on("room-joined", async (response, playerNum) => {
+        console.log(
+          `Room of was joined: Call: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`
+        );
         playerDetails.userIdSocket = response.player_details.userIdSocket;
         playerDetails.isRoomOwner = response.player_details.isRoomOwner;
         playerDetails.player = playerNum;
@@ -218,49 +224,56 @@ class GameScene extends Phaser.Scene {
               .getTracks()
               .forEach((track) => localConnection.addTrack(track, midias));
             localConnection.onicecandidate = ({ candidate }) => {
-              candidate && socket.emit("candidate", playerDetails.roomId, candidate); //
+              candidate &&
+                socket.emit("candidate", playerDetails.roomId, candidate); //
             };
             console.log(midias);
             localConnection.ontrack = ({ streams: [midias] }) => {
               audioOutput.srcObject = midias;
-          };
-          localConnection
-            .createOffer()
-            .then((offer) => localConnection.setLocalDescription(offer))
-            .then(() => {
-              socket.emit("offer", playerDetails.roomId, localConnection.localDescription);
-            });
-        }).catch((error) => console.log(error));
+            };
+            localConnection
+              .createOffer()
+              .then((offer) => localConnection.setLocalDescription(offer))
+              .then(() => {
+                socket.emit(
+                  "offer",
+                  playerDetails.roomId,
+                  localConnection.localDescription
+                );
+              });
+          })
+          .catch((error) => console.log(error));
+      });
 
-      })
-
-      socket.on('full-room', (response) => {
-        console.log(`Room was Full: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`);
+      socket.on("full-room", (response) => {
+        console.log(
+          `Room was Full: SocketId:${response.player_details.userIdSocket} Call:${response.call} - Response:${response.response} - ${response.code}`
+        );
         alert("Room is Full, try another time.");
         location.reload();
       });
-      
+
       //Desconnection trigger
       var FKey = this.input.keyboard.addKey("F");
       FKey.on("down", () => {
-        socket.emit('bye', playerDetails);
+        socket.emit("bye", playerDetails);
         location.reload();
-      })
-      
+      });
 
-      socket.on('leave-room', async (response) => {
-        console.log(`User ${response.response.player_details.userId} Room left: Call:${response.response.call} - Response:${response.response.response} - ${response.response.code}`)
-      
-        if(response.nisRoomOwner == playerDetails.userId){
-          playerDetails.isRoomOwner = true
+      socket.on("leave-room", async (response) => {
+        console.log(
+          `User ${response.response.player_details.userId} Room left: Call:${response.response.call} - Response:${response.response.response} - ${response.response.code}`
+        );
+
+        if (response.nisRoomOwner == playerDetails.userId) {
+          playerDetails.isRoomOwner = true;
         }
-      
-      })
+      });
 
-      socket.on('ack-bye', async () => {
-        console.log('Socket event callback: ack-bye')
-        loginDetails.isRoomCreator = false
-      })
+      socket.on("ack-bye", async () => {
+        console.log("Socket event callback: ack-bye");
+        loginDetails.isRoomCreator = false;
+      });
 
       socket.on("offer", (room, description) => {
         remoteConnection = new RTCPeerConnection(ice_servers);
@@ -291,7 +304,7 @@ class GameScene extends Phaser.Scene {
         localConnection.setRemoteDescription(description);
       });
 
-      socket.on("startGame", () =>{
+      socket.on("startGame", () => {
         console.log("Minimum Required Players in room, starting game Now.");
         start = true;
         // Creating groups for the ground
@@ -309,130 +322,126 @@ class GameScene extends Phaser.Scene {
 
         this.addGround(this.gameWidth, this.gameWidth / 2);
 
-        if(playerDetails.player == 1)
-        {
+        if (playerDetails.player == 1) {
           player1 = this.physics.add
             .sprite(640, 405, "playerRun")
             .setScale(2)
             .setBounce(0.05)
             .setGravityY(600);
-        
+
           player2 = this.physics.add
-              .sprite(740, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);
+            .sprite(740, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(false);
 
           player3 = this.physics.add
-              .sprite(540, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);  
+            .sprite(540, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(false);
 
-          player4 = this.physics.add
-              .sprite(840, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);
+          // player4 = this.physics.add
+          //   .sprite(840, 405, "playerRun")
+          //   .setScale(2)
+          //   .setBounce(0.05)
+          //   .setGravityY(false);
 
-          cursors = this.input.keyboard.createCursorKeys()  
-          
+          cursors = this.input.keyboard.createCursorKeys();
+
           this.physics.add.collider(player1, this.groundGroup);
         }
 
-        if(playerDetails.player == 2)
-        {
+        if (playerDetails.player == 2) {
           player1 = this.physics.add
             .sprite(640, 405, "playerRun")
             .setScale(2)
             .setBounce(0.05)
             .setGravityY(false);
-        
+
           player2 = this.physics.add
-              .sprite(740, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(600);
+            .sprite(740, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(600);
 
           player3 = this.physics.add
-              .sprite(540, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);  
+            .sprite(540, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(false);
 
-          player4 = this.physics.add
-              .sprite(840, 410, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);
+          // player4 = this.physics.add
+          //   .sprite(840, 410, "playerRun")
+          //   .setScale(2)
+          //   .setBounce(0.05)
+          //   .setGravityY(false);
 
-          cursors = this.input.keyboard.createCursorKeys()  
-          
+          cursors = this.input.keyboard.createCursorKeys();
+
           this.physics.add.collider(player2, this.groundGroup);
         }
 
-        if(playerDetails.player == 3)
-        {
+        if (playerDetails.player == 3) {
           player1 = this.physics.add
             .sprite(640, 405, "playerRun")
             .setScale(2)
             .setBounce(0.05)
             .setGravityY(false);
-        
+
           player2 = this.physics.add
-              .sprite(740, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);
+            .sprite(740, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(false);
 
           player3 = this.physics.add
-              .sprite(540, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(600);  
+            .sprite(540, 405, "playerRun")
+            .setScale(2)
+            .setBounce(0.05)
+            .setGravityY(600);
 
-          player4 = this.physics.add
-              .sprite(840, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);
+          // player4 = this.physics.add
+          //   .sprite(840, 405, "playerRun")
+          //   .setScale(2)
+          //   .setBounce(0.05)
+          //   .setGravityY(false);
 
-          cursors = this.input.keyboard.createCursorKeys()  
-          
+          cursors = this.input.keyboard.createCursorKeys();
+
           this.physics.add.collider(player3, this.groundGroup);
         }
 
-        if(playerDetails.player == 4)
-        {
-          player1 = this.physics.add
-            .sprite(640, 405, "playerRun")
-            .setScale(2)
-            .setBounce(0.05)
-            .setGravityY(false);
-        
-          player2 = this.physics.add
-              .sprite(740, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);
+        // if (playerDetails.player == 4) {
+        //   player1 = this.physics.add
+        //     .sprite(640, 405, "playerRun")
+        //     .setScale(2)
+        //     .setBounce(0.05)
+        //     .setGravityY(false);
 
-          player3 = this.physics.add
-              .sprite(540, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(false);  
+        //   player2 = this.physics.add
+        //     .sprite(740, 405, "playerRun")
+        //     .setScale(2)
+        //     .setBounce(0.05)
+        //     .setGravityY(false);
 
-          player4 = this.physics.add
-              .sprite(840, 405, "playerRun")
-              .setScale(2)
-              .setBounce(0.05)
-              .setGravityY(600);
+        //   player3 = this.physics.add
+        //     .sprite(540, 405, "playerRun")
+        //     .setScale(2)
+        //     .setBounce(0.05)
+        //     .setGravityY(false);
 
-          cursors = this.input.keyboard.createCursorKeys()  
-          
-          this.physics.add.collider(player4, this.groundGroup);
-        }
-       
+        //   player4 = this.physics.add
+        //     .sprite(840, 405, "playerRun")
+        //     .setScale(2)
+        //     .setBounce(0.05)
+        //     .setGravityY(600);
+
+        //   cursors = this.input.keyboard.createCursorKeys();
+
+        //   this.physics.add.collider(player4, this.groundGroup);
+        // }
+
         this.anims.create({
           key: "run",
           frameRate: 15,
@@ -464,42 +473,41 @@ class GameScene extends Phaser.Scene {
             resolution: 5,
           })
           .setOrigin(0, 0);
-        
+
         //-------------
         // Calling the function
-        this.handleScore(); 
-
+        this.handleScore();
       });
-    
+
       socket.on("playerDraw", ({ who, frame, x, y }) => {
         if (who === 1) {
           player1.setFrame(frame);
           player1.x = x;
           player1.y = y;
-        } 
-        if ( who === 2) {
+        }
+        if (who === 2) {
           player2.setFrame(frame);
           player2.x = x;
           player2.y = y;
         }
-        if ( who === 3) {
+        if (who === 3) {
           player3.setFrame(frame);
           player3.x = x;
           player3.y = y;
         }
-        if ( who === 4) {
-          player4.setFrame(frame);
-          player4.x = x;
-          player.y = y;
-        }
+        // if (who === 4) {
+        //   player4.setFrame(frame);
+        //   player4.x = x;
+        //   player.y = y;
+        // }
       });
 
-      socket.on("gameDraw", ({nextGroundWidth, posX}) => {
-         this.addGround(nextGroundWidth, posX);
-      });      
+      socket.on("gameDraw", ({ nextGroundWidth, posX }) => {
+        this.addGround(nextGroundWidth, posX);
+      });
     }
   }
-  
+
   // Increase the score over the time
   handleScore() {
     this.time.addEvent({
@@ -556,37 +564,35 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
-    if(start == true)
-    {
+    if (start == true) {
       //verfica se o player morreu
       if (player1.y > 720 && playerDetails.player == 1) {
-        socket.emit('bye', playerDetails);
+        socket.emit("bye", playerDetails);
         this.scene.start("EndGameScene");
         this.backgroundMusic.stop();
       }
 
       if (player2.y > 720 && playerDetails.player == 2) {
-        socket.emit('bye', playerDetails);
+        socket.emit("bye", playerDetails);
         this.scene.start("EndGameScene");
         this.backgroundMusic.stop();
       }
 
       if (player3.y > 720 && playerDetails.player == 3) {
-        socket.emit('bye', playerDetails);
+        socket.emit("bye", playerDetails);
         this.scene.start("EndGameScene");
         this.backgroundMusic.stop();
       }
 
-      if (player4.y > 720 && playerDetails.player == 4) {
-        socket.emit('bye', playerDetails);
-        this.scene.start("EndGameScene");
-        this.backgroundMusic.stop();
-      }
+      // if (player4.y > 720 && playerDetails.player == 4) {
+      //   socket.emit('bye', playerDetails);
+      //   this.scene.start("EndGameScene");
+      //   this.backgroundMusic.stop();
+      // }
 
       //verfica se o movimento de cada player
-      if(playerDetails.player == 1)
-      {
-        if(cursors.space.isDown){
+      if (playerDetails.player == 1) {
+        if (cursors.space.isDown) {
           const randomIndex = Math.floor(Math.random() * 3);
           this.jumpSound[randomIndex].play();
 
@@ -595,19 +601,18 @@ class GameScene extends Phaser.Scene {
         } else {
           player1.anims.play("run", true);
         }
-        
+
         player1.x = this.gameHeight;
         socket.emit("playerState", {
           who: 1,
           frame: player1.anims.getFrameName(),
           x: this.gameHeight,
-          y: player1.y
+          y: player1.y,
         });
-      }  
+      }
 
-      if(playerDetails.player == 2)
-      {
-        if(cursors.space.isDown){
+      if (playerDetails.player == 2) {
+        if (cursors.space.isDown) {
           const randomIndex = Math.floor(Math.random() * 3);
           this.jumpSound[randomIndex].play();
 
@@ -621,13 +626,12 @@ class GameScene extends Phaser.Scene {
           who: 2,
           frame: player2.anims.getFrameName(),
           x: this.gameHeight + 100,
-          y: player2.y
+          y: player2.y,
         });
       }
 
-      if(playerDetails.player == 3)
-      {
-        if(cursors.space.isDown){
+      if (playerDetails.player == 3) {
+        if (cursors.space.isDown) {
           const randomIndex = Math.floor(Math.random() * 3);
           this.jumpSound[randomIndex].play();
 
@@ -635,41 +639,40 @@ class GameScene extends Phaser.Scene {
           player3.anims.play("jump", true);
         } else {
           player3.anims.play("run", true);
-        } 
+        }
         player3.x = this.gameHeight - 100;
         socket.emit("playerState", {
           who: 3,
           frame: player3.anims.getFrameName(),
           x: this.gameHeight - 100,
-          y: player3.y
+          y: player3.y,
         });
       }
 
-      if(playerDetails.player == 4)
-      {
-        if(cursors.space.isDown){
-          const randomIndex = Math.floor(Math.random() * 3);
-          this.jumpSound[randomIndex].play();
+      // if (playerDetails.player == 4) {
+      //   if (cursors.space.isDown) {
+      //     const randomIndex = Math.floor(Math.random() * 3);
+      //     this.jumpSound[randomIndex].play();
 
-          player4.setVelocityY(5000000);
-          player4.anims.play("jump", true);
-        } else {
-          player4.anims.play("run", true);
-        }
-        player4.x = this.gameHeight + 200;
-        socket.emit("playerState", {
-          who: 4,
-          frame: player4.anims.getFrameName(),
-          x: this.gameHeight + 200,
-          y: player4.y
-        });
-      }
-
+      //     player4.setVelocityY(5000000);
+      //     player4.anims.play("jump", true);
+      //   } else {
+      //     player4.anims.play("run", true);
+      //   }
+      //   player4.x = this.gameHeight + 200;
+      //   socket.emit("playerState", {
+      //     who: 4,
+      //     frame: player4.anims.getFrameName(),
+      //     x: this.gameHeight + 200,
+      //     y: player4.y,
+      //   });
+      // }
 
       let minDistance = this.gameWidth;
 
       this.groundGroup.getChildren().forEach((ground) => {
-        let groundDistance = this.gameWidth - ground.x - ground.displayWidth / 2;
+        let groundDistance =
+          this.gameWidth - ground.x - ground.displayWidth / 2;
 
         minDistance = Math.min(minDistance, groundDistance);
 
@@ -680,13 +683,12 @@ class GameScene extends Phaser.Scene {
       }, this);
 
       if (minDistance > this.nextGroundDistance) {
-        if(playerDetails.isRoomOwner == true)
-        {
+        if (playerDetails.isRoomOwner == true) {
           let nextGroundWidth = Phaser.Math.Between(100, 350);
           var groundDetails = {
             nextGroundWidth: nextGroundWidth,
             posX: this.gameWidth + nextGroundWidth / 2,
-          }
+          };
           socket.emit("gameState", groundDetails);
           this.addGround(nextGroundWidth, this.gameWidth + nextGroundWidth / 2);
         }
@@ -701,14 +703,14 @@ class GameScene extends Phaser.Scene {
 }
 
 function makeid(length) {
-  var result           = '';
-  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var result = "";
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var charactersLength = characters.length;
-  for ( var i = 0; i < length; i++ ) {
-    result += characters.charAt(Math.floor(Math.random() * 
-charactersLength));
- }
- return result;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 }
 
 export default GameScene;

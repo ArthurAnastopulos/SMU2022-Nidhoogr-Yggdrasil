@@ -9,7 +9,7 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 const Clients = new Array();
-const maxClients = 4;
+const maxClients = 3;
 
 var response = {
   call: undefined,
@@ -58,9 +58,8 @@ io.on("connection", (socket) => {
 
       socket.join(playerDetails.roomId);
       socket.emit("room-joined", response, Clients.length);
-      
-      if(Clients.length >= maxClients)
-      {
+
+      if (Clients.length >= maxClients) {
         socket.emit("startGame");
         socket.broadcast.to(playerDetails.roomId).emit("startGame");
       }
